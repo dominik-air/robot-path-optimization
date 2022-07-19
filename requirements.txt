@@ -1,7 +1,8 @@
 networkx~=2.8.4
-websockets
 numpy
 sympy
 pygame
 opencv-python
 matplotlib
+fastapi
+uvicorn[standard]
