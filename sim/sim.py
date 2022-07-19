@@ -1,6 +1,6 @@
 import pygame
 import json
-from geometry import create_robot_moves
+from .geometry import create_robot_moves
 
 pygame.init()
 
@@ -10,40 +10,30 @@ def load_json(filename: str) -> dict:
         return json.load(f)
 
 
-SCALE = 2
-SETTINGS = load_json("dimensions.json")
-
-MAP_LENGTH = SETTINGS["warehouse"]["length"] * SCALE
-MAP_WIDTH = SETTINGS["warehouse"]["width"] * SCALE
-
-ROWS = SETTINGS["warehouse"]["layout"]["rows"]
-COLS = SETTINGS["warehouse"]["layout"]["columns"]
-
-X_OFFSET = SETTINGS["warehouse"]["layout"]["x_offset"] * SCALE
-Y_OFFSET = SETTINGS["warehouse"]["layout"]["y_offset"] * SCALE
-X_SPACING = SETTINGS["warehouse"]["layout"]["x_spacing"] * SCALE
-Y_SPACING = SETTINGS["warehouse"]["layout"]["y_spacing"] * SCALE
-
-SHELF_LENGTH = SETTINGS["shelf"]["length"] * SCALE
-SHELF_WIDTH = SETTINGS["shelf"]["width"] * SCALE
-
-ROBOT_LENGTH = SETTINGS["robot"]["length"] * SCALE
-ROBOT_WIDTH = SETTINGS["robot"]["width"] * SCALE
-
-step_size = 2 * SCALE
-FPS = 60
-screen = pygame.display.set_mode([MAP_WIDTH, MAP_LENGTH])
-
-
 class Robot:
-    def __init__(self, x: int, y: int):
-        self.rect = pygame.Rect(x, y, ROBOT_WIDTH, ROBOT_LENGTH)
+    def __init__(self, x: int, y: int, width: int, length: int):
+        self.rect = pygame.Rect(x, y, width, length)
         self.color = (255, 0, 0)
+        self.enabled = False
+
+    @property
+    def x(self):
+        return self.rect.x
+
+    @property
+    def y(self):
+        return self.rect.y
+
+    def enable(self):
+        self.enabled = True
+
+    def disable(self):
+        self.enabled = False
 
     def move(self, x: int = 0, y: int = 0):
         self.rect.move_ip(x, y)
 
-    def update(self):
+    def update(self, screen):
         pygame.draw.rect(screen, self.color, self.rect)
 
 
@@ -59,12 +49,12 @@ def draw_shelves() -> None:
 def try_some_moves(robot: Robot, i: int, moves: list):
     try:
         move = moves[i]
+        robot.move(*move)
     except IndexError:
-        move = (0, 0)
-    robot.move(*move)
+        return
 
 
-def create_instruction_set(points) -> list:
+def create_instruction_set(points, step_size) -> list:
     instructions = []
     for p1, p2 in zip(points[:-1], points[1:]):
         x_start, y_start = p1
@@ -75,14 +65,36 @@ def create_instruction_set(points) -> list:
 
 if __name__ == '__main__':
 
-    x_start = 5 * SCALE
-    y_start = 5 * SCALE
-    robot = Robot(x_start, y_start)
-    x_end = 400
-    y_end = 600
-    points = [(x_start, y_start), (x_end, y_start), (x_end, y_end)]
-    points += points[1::-1]
-    moves = create_instruction_set(points)
+    SCALE = 2
+    SETTINGS = load_json("dimensions.json")
+
+    MAP_LENGTH = SETTINGS["warehouse"]["length"] * SCALE
+    MAP_WIDTH = SETTINGS["warehouse"]["width"] * SCALE
+
+    ROWS = SETTINGS["warehouse"]["layout"]["rows"]
+    COLS = SETTINGS["warehouse"]["layout"]["columns"]
+
+    X_OFFSET = SETTINGS["warehouse"]["layout"]["x_offset"] * SCALE
+    Y_OFFSET = SETTINGS["warehouse"]["layout"]["y_offset"] * SCALE
+    X_SPACING = SETTINGS["warehouse"]["layout"]["x_spacing"] * SCALE
+    Y_SPACING = SETTINGS["warehouse"]["layout"]["y_spacing"] * SCALE
+
+    SHELF_LENGTH = SETTINGS["shelf"]["length"] * SCALE
+    SHELF_WIDTH = SETTINGS["shelf"]["width"] * SCALE
+
+    ROBOT_LENGTH = SETTINGS["robot"]["length"] * SCALE
+    ROBOT_WIDTH = SETTINGS["robot"]["width"] * SCALE
+
+    screen = pygame.display.set_mode([MAP_WIDTH, MAP_LENGTH])
+
+    step_size = 1 * SCALE
+    FPS = 60
+
+    robot = Robot(x=5*SCALE, y=5*SCALE, width=ROBOT_WIDTH, length=ROBOT_LENGTH)
+
+    points = [(robot.x, robot.y)]
+    moves = []
+    circles = []
 
     running = True
     i = 0
@@ -93,22 +105,38 @@ if __name__ == '__main__':
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT or event.key == ord('a'):
-                    robot.move(x=-step_size)
-                if event.key == pygame.K_RIGHT or event.key == ord('d'):
-                    robot.move(x=step_size)
-                if event.key == pygame.K_UP or event.key == ord('w'):
-                    robot.move(y=-step_size)
-                if event.key == pygame.K_DOWN or event.key == ord('s'):
-                    robot.move(y=step_size)
+                # FIXME: the ruleset (the sim's structure overall) isn't defined
+                #  in the most verbose way it could have been, but it works for now
+                # f - run robot
+                # n - add new point that the robot should visit
+                # r - reset robot (also clears points)
+                if event.key == ord("f"):
+                    robot.enable()
+                    i = 0
+                    j = 0
+                    moves = create_instruction_set(points, step_size)
+                if event.key == ord("n") and not robot.enabled:
+                    pos = pygame.mouse.get_pos()
+                    circles.append(pos)
+                    points.append(pos)
+                if event.key == ord("r"):
+                    robot.disable()
+                    points = [(robot.x, robot.y)]
+                    circles = []
+
+        if robot.enabled:
+            if j % FPS == 0:
+                try_some_moves(robot, i, moves)
+                i += 1
+            j += 1
 
         screen.fill((255, 255, 255))
-        if j % FPS == 0:
-            try_some_moves(robot, i, moves)
-            i += 1
-        j += 1
+
+        for p in circles:
+            pygame.draw.circle(screen, (0, 255, 0), p, 5)
+
         draw_shelves()
-        robot.update()
+        robot.update(screen)
         pygame.display.flip()
 
     pygame.quit()
