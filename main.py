@@ -12,6 +12,6 @@ moves = iter(sim.create_instruction_set(points, step_size=10))
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     while True:
-        await asyncio.sleep(1)
-        robot.move(*next(moves))
+        await asyncio.sleep(1)  # some delay to mock time intervals in the simulation
+        robot.move(*next(moves))  # I wanted to plug in here the code for the sim
         await websocket.send_text(f"(x:{robot.x}; y:{robot.y})")
