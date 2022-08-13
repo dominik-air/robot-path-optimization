@@ -11,6 +11,7 @@ from entities import (
     VisibilityController,
 )
 from control import RobotController
+from graphs import shortest_path
 
 pygame.init()
 
@@ -79,6 +80,10 @@ if __name__ == "__main__":
                     robot_controller.push_new_instructions()
                 if event.key == ord("n"):
                     robot_controller.add_point(pygame.mouse.get_pos())
+                if event.key == ord("s"):
+                    path = shortest_path(source='A', target='U')
+                    for p in path:
+                        robot_controller.add_point(p)
                 if event.key == ord("r"):
                     robot_controller.clear_points()
                 # Visibility Settings' keybinds
