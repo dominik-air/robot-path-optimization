@@ -18,10 +18,10 @@ class Warehouse:
             pygame.draw.polygon(surface, self.color, points=polygon)
 
 
-class VisibilityGraph:
-    def __init__(self, nodes, radius: int = 3):
+class Graph:
+    def __init__(self, nodes, color, radius: int = 3):
         self.nodes = nodes
-        self.color = constants.BLUE_VERTEX
+        self.color = color
         self.radius = radius
 
     def draw(self, surface: pygame.Surface) -> None:
@@ -41,7 +41,7 @@ class FPSCounter:
         self.clock.tick()
         return self.clock.get_fps()
 
-    def draw(self, surface: pygame.Surface):
+    def draw(self, surface: pygame.Surface) -> None:
         self.font.render_to(
             surf=surface,
             dest=(self.x, self.y),
@@ -67,24 +67,17 @@ class Robot:
     def __init__(self, x: int, y: int, width: int, length: int):
         self.rect = pygame.Rect(x, y, width, length)
         self.color = constants.RED_ROBOT
-        self.enabled = False
 
     @property
-    def x(self):
+    def x(self) -> int:
         return self.rect.x
 
     @property
-    def y(self):
+    def y(self) -> int:
         return self.rect.y
 
-    def enable(self):
-        self.enabled = True
-
-    def disable(self):
-        self.enabled = False
-
-    def move(self, x: int = 0, y: int = 0):
+    def move(self, x: int = 0, y: int = 0) -> None:
         self.rect.move_ip(x, y)
 
-    def draw(self, screen: pygame.Surface):
+    def draw(self, screen: pygame.Surface) -> None:
         pygame.draw.rect(screen, self.color, self.rect)
