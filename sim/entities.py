@@ -19,12 +19,18 @@ class Warehouse:
 
 
 class Graph:
-    def __init__(self, nodes, color, radius: int = 3):
+    def __init__(self, nodes, color, edges=None, edge_color=None, radius: int = 3):
         self.nodes = nodes
+        self.edges = edges
         self.color = color
+        self.edge_color = edge_color
         self.radius = radius
 
     def draw(self, surface: pygame.Surface) -> None:
+        if self.edges is not None and self.edge_color is not None:
+            for edge in self.edges:
+                start, end = edge
+                pygame.draw.line(surface, self.edge_color, start, end, 4)
         for node in self.nodes:
             pygame.draw.circle(surface, self.color, center=node, radius=self.radius)
 

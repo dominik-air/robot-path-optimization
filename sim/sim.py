@@ -47,15 +47,27 @@ if __name__ == "__main__":
 
     polygons = load_json("polygon.json")
     warehouse = Warehouse(polygons)
-    nodes = load_json("nodes.json")
-    visibility_graph = Graph(nodes, color=constants.BLUE_VERTEX, radius=10)
+    graph_data = load_json("visibility_graph.json")
+
+    nodes = graph_data["nodes"]
+    edges = graph_data["edges"]
+
+    visibility_graph = Graph(
+        nodes=nodes,
+        color=constants.BLUE_VERTEX,
+        edges=edges,
+        edge_color=constants.RED_ROBOT,
+        radius=10,
+    )
 
     robot = Robot(x=5 * SCALE, y=5 * SCALE, width=ROBOT_WIDTH, length=ROBOT_LENGTH)
 
     fps_counter = FPSCounter(x=int(MAP_WIDTH * 0.8), y=10)
 
     robot_controller = RobotController(robot, step_size)
-    user_nodes = Graph(nodes=robot_controller.points, color=constants.GREEN_POINTER, radius=5)
+    user_nodes = Graph(
+        nodes=robot_controller.points, color=constants.GREEN_POINTER, radius=5
+    )
 
     visible_objects: List[Viewable] = [robot, warehouse, user_nodes, fps_counter]
     visibility_controller = VisibilityController(visible_objects)
@@ -75,7 +87,7 @@ if __name__ == "__main__":
                 # r - reset robot (also clears points)
                 if event.key == ord("f"):
                     i = 0
-                    robot_controller.initiate_robot_movement()
+                    robot_controller.push_new_instructions()
                 if event.key == ord("n"):
                     robot_controller.add_point(pygame.mouse.get_pos())
                 if event.key == ord("r"):

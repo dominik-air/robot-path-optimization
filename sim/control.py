@@ -25,7 +25,7 @@ class RobotController:
     def clear_points(self) -> None:
         self.points.clear()
 
-    def initiate_robot_movement(self):
+    def push_new_instructions(self):
         moves = []
         points = [(self.robot.x, self.robot.y)] + self.points
         for p1, p2 in zip(points[:-1], points[1:]):
