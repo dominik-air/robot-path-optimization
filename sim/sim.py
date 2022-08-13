@@ -1,6 +1,16 @@
-import pygame
+import pygame.freetype
 import json
-from .geometry import create_robot_moves
+import constants
+from typing import List
+from geometry import create_robot_moves
+from entities import (
+    VisibilityGraph,
+    Warehouse,
+    Viewable,
+    Robot,
+    FPSCounter,
+    VisibilityController,
+)
 
 pygame.init()
 
@@ -8,42 +18,6 @@ pygame.init()
 def load_json(filename: str) -> dict:
     with open(filename) as f:
         return json.load(f)
-
-
-class Robot:
-    def __init__(self, x: int, y: int, width: int, length: int):
-        self.rect = pygame.Rect(x, y, width, length)
-        self.color = (255, 0, 0)
-        self.enabled = False
-
-    @property
-    def x(self):
-        return self.rect.x
-
-    @property
-    def y(self):
-        return self.rect.y
-
-    def enable(self):
-        self.enabled = True
-
-    def disable(self):
-        self.enabled = False
-
-    def move(self, x: int = 0, y: int = 0):
-        self.rect.move_ip(x, y)
-
-    def update(self, screen):
-        pygame.draw.rect(screen, self.color, self.rect)
-
-
-def draw_shelves() -> None:
-    for row in range(ROWS):
-        for col in range(COLS):
-            x = X_OFFSET + col * (SHELF_WIDTH + X_SPACING)
-            y = Y_OFFSET + row * (SHELF_LENGTH + Y_SPACING)
-            rect = pygame.Rect(x, y, SHELF_WIDTH, SHELF_LENGTH)
-            pygame.draw.rect(screen, (0, 0, 0), rect)
 
 
 def try_some_moves(robot: Robot, i: int, moves: list):
@@ -63,8 +37,7 @@ def create_instruction_set(points, step_size) -> list:
     return instructions
 
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     SCALE = 2
     SETTINGS = load_json("dimensions.json")
 
@@ -88,9 +61,18 @@ if __name__ == '__main__':
     screen = pygame.display.set_mode([MAP_WIDTH, MAP_LENGTH])
 
     step_size = 1 * SCALE
-    FPS = 60
 
-    robot = Robot(x=5*SCALE, y=5*SCALE, width=ROBOT_WIDTH, length=ROBOT_LENGTH)
+    polygons = load_json("polygon.json")
+    warehouse = Warehouse(polygons)
+    nodes = load_json("nodes.json")
+    visibility_graph = VisibilityGraph(nodes, radius=10)
+
+    robot = Robot(x=5 * SCALE, y=5 * SCALE, width=ROBOT_WIDTH, length=ROBOT_LENGTH)
+
+    fps_counter = FPSCounter(x=int(MAP_WIDTH * 0.8), y=10)
+
+    visible_objects: List[Viewable] = [robot, warehouse]
+    controller = VisibilityController(visible_objects)
 
     points = [(robot.x, robot.y)]
     moves = []
@@ -123,20 +105,42 @@ if __name__ == '__main__':
                     robot.disable()
                     points = [(robot.x, robot.y)]
                     circles = []
+                # Visibility Settings' keybinds
+                mods = pygame.key.get_mods()
+                if event.key == ord("q"):
+                    if mods & pygame.KMOD_LSHIFT:
+                        controller.show_object(fps_counter)
+                    else:
+                        controller.hide_object(fps_counter)
+                if event.key == ord("w"):
+                    if mods & pygame.KMOD_LSHIFT:
+                        controller.show_object(visibility_graph)
+                    else:
+                        controller.hide_object(visibility_graph)
+                if event.key == ord("e"):
+                    if mods & pygame.KMOD_LSHIFT:
+                        controller.show_object(warehouse)
+                    else:
+                        controller.hide_object(warehouse)
+                if event.key == ord("t"):
+                    if mods & pygame.KMOD_LSHIFT:
+                        controller.show_object(robot)
+                    else:
+                        controller.hide_object(robot)
 
         if robot.enabled:
-            if j % FPS == 0:
+            if j % (fps_counter.fps / 1000) == 0:
                 try_some_moves(robot, i, moves)
                 i += 1
             j += 1
 
-        screen.fill((255, 255, 255))
+        screen.fill(constants.WHITE)
 
         for p in circles:
-            pygame.draw.circle(screen, (0, 255, 0), p, 5)
+            pygame.draw.circle(screen, constants.GREEN_POINTER, p, 5)
 
-        draw_shelves()
-        robot.update(screen)
+        for obj in visible_objects:
+            obj.draw(screen)
         pygame.display.flip()
 
     pygame.quit()
