@@ -21,23 +21,12 @@ def load_json(filename: str) -> dict:
 
 
 if __name__ == "__main__":
+    # FIXME: the old settings file is out of date - needs some love
     SCALE = 2
     SETTINGS = load_json("dimensions.json")
 
     MAP_LENGTH = SETTINGS["warehouse"]["length"] * SCALE
     MAP_WIDTH = SETTINGS["warehouse"]["width"] * SCALE
-
-    ROWS = SETTINGS["warehouse"]["layout"]["rows"]
-    COLS = SETTINGS["warehouse"]["layout"]["columns"]
-
-    X_OFFSET = SETTINGS["warehouse"]["layout"]["x_offset"] * SCALE
-    Y_OFFSET = SETTINGS["warehouse"]["layout"]["y_offset"] * SCALE
-    X_SPACING = SETTINGS["warehouse"]["layout"]["x_spacing"] * SCALE
-    Y_SPACING = SETTINGS["warehouse"]["layout"]["y_spacing"] * SCALE
-
-    SHELF_LENGTH = SETTINGS["shelf"]["length"] * SCALE
-    SHELF_WIDTH = SETTINGS["shelf"]["width"] * SCALE
-
     ROBOT_LENGTH = SETTINGS["robot"]["length"] * SCALE
     ROBOT_WIDTH = SETTINGS["robot"]["width"] * SCALE
 
