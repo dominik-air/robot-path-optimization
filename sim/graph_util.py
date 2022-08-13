@@ -1,13 +1,5 @@
 import json
 
-warehouse_matrix = [
-    ["A", "B", "C", "D"],
-    ["E", "F", "G", "H"],
-    ["I", "J", "K", "L"],
-    ["M", "N", "O", "P"],
-    ["R", "S", "T", "U"],
-]
-
 
 def create_coordinates_matrix(scale=2):
     xs = [15 * scale]
@@ -30,9 +22,6 @@ def create_coordinates_matrix(scale=2):
     return [coordinates[4 * i : 4 * i + 4] for i in range(5)]
 
 
-coordinates = create_coordinates_matrix()
-
-
 def create_adjacency_list(matrix):
     adj_list = {}
     X = len(matrix)
@@ -53,30 +42,47 @@ def create_adjacency_list(matrix):
     return adj_list
 
 
-adj_list = create_adjacency_list(coordinates)
-nodes = list(adj_list.keys())
+if __name__ == "__main__":
 
-edges = []
-for k in adj_list:
-    for v in adj_list[k]:
-        edges.append((k, v))
-edges = list(set(edges))
+    warehouse_matrix = [
+        ["A", "B", "C", "D"],
+        ["E", "F", "G", "H"],
+        ["I", "J", "K", "L"],
+        ["M", "N", "O", "P"],
+        ["R", "S", "T", "U"],
+    ]
 
-data = {"nodes": nodes, "edges": edges}
+    coordinates = create_coordinates_matrix()
 
-with open("visibility_graph.json", "w") as f:
-    json.dump(data, f, indent=4)
+    mapping = {}
+    for i in range(5):
+        for j in range(4):
+            mapping[warehouse_matrix[i][j]] = coordinates[i][j]
 
+    adj_list = create_adjacency_list(coordinates)
+    nodes = list(adj_list.keys())
 
-adj_list = create_adjacency_list(warehouse_matrix)
-nodes = list(adj_list.keys())
+    edges = []
+    for k in adj_list:
+        for v in adj_list[k]:
+            edges.append((k, v))
+    edges = list(set(edges))
 
-edges = []
-for k in adj_list:
-    for v in adj_list[k]:
-        edges.append((k, v))
+    adj_list_symbols = create_adjacency_list(warehouse_matrix)
+    nodes_symbols = list(adj_list_symbols.keys())
 
-data = {"nodes": nodes, "edges": edges}
+    edges_symbols = []
+    for k in adj_list_symbols:
+        for v in adj_list_symbols[k]:
+            edges_symbols.append((k, v))
 
-with open("visibility_graph_symbolic.json", "w") as f:
-    json.dump(data, f, indent=4)
+    data = {
+        "nodes": nodes,
+        "edges": edges,
+        "nodes_symbols": nodes_symbols,
+        "edges_symbols": edges_symbols,
+        "mapping": mapping,
+    }
+
+    with open("visibility_graph.json", "w") as f:
+        json.dump(data, f, indent=4)

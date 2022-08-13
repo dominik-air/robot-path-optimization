@@ -7,11 +7,11 @@ def load_json(filename: str) -> dict:
         return json.load(f)
 
 
-if __name__ == "__main___":
-    graph_data = load_json("visibility_graph_symbolic.json")
+if __name__ == "__main__":
+    graph_data = load_json("visibility_graph.json")
 
-    nodes = graph_data["nodes"]
-    edges = graph_data["edges"]
+    nodes = graph_data["nodes_symbols"]
+    edges = graph_data["edges_symbols"]
 
     G = nx.Graph()
     G.add_nodes_from(nodes)
