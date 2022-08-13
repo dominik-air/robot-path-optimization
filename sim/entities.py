@@ -24,13 +24,17 @@ class Graph:
         self.edges = edges
         self.color = color
         self.edge_color = edge_color
+        if self.edge_color is None:
+            self.edge_color = constants.BLUE_VERTEX
         self.radius = radius
 
     def draw(self, surface: pygame.Surface) -> None:
-        if self.edges is not None and self.edge_color is not None:
-            for edge in self.edges:
-                start, end = edge
-                pygame.draw.line(surface, self.edge_color, start, end, 4)
+        edges = self.edges
+        if not edges:
+            edges = [(n1, n2) for n1, n2 in zip(self.nodes[:-1], self.nodes[1:])]
+        for edge in edges:
+            start, end = edge
+            pygame.draw.line(surface, self.edge_color, start, end, 4)
         for node in self.nodes:
             pygame.draw.circle(surface, self.color, center=node, radius=self.radius)
 
