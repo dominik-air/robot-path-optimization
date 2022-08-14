@@ -1,6 +1,7 @@
 import pygame
 import constants
 from typing import Protocol, List
+from graphs import GraphModel
 
 
 class Viewable(Protocol):
@@ -19,23 +20,24 @@ class Warehouse:
 
 
 class Graph:
-    def __init__(self, nodes, color, edges=None, edge_color=None, radius: int = 3):
-        self.nodes = nodes
-        self.edges = edges
-        self.color = color
+    def __init__(self, model: GraphModel, node_color, edge_color=None, radius: int = 3):
+        self.model = model
+        self.color = node_color
         self.edge_color = edge_color
         if self.edge_color is None:
             self.edge_color = constants.BLUE_VERTEX
         self.radius = radius
 
     def draw(self, surface: pygame.Surface) -> None:
-        edges = self.edges
+        edges = self.model.edges_numeric
         if not edges:
-            edges = [(n1, n2) for n1, n2 in zip(self.nodes[:-1], self.nodes[1:])]
+            edges = [
+                (n1, n2) for n1, n2 in zip(self.model.nodes_numeric[:-1], self.model.nodes_numeric[1:])
+            ]
         for edge in edges:
             start, end = edge
             pygame.draw.line(surface, self.edge_color, start, end, 4)
-        for node in self.nodes:
+        for node in self.model.nodes_numeric:
             pygame.draw.circle(surface, self.color, center=node, radius=self.radius)
 
 

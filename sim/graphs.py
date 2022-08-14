@@ -56,10 +56,20 @@ def tsp_solver(matrix):
 
 class GraphModel:
     def __init__(self, data_path: str):
+        self.data_path = data_path
         graph_data = load_json(data_path)
         self.nodes = graph_data["nodes_symbols"]
         self.edges = graph_data["edges_symbols"]
         self.mapping = graph_data["mapping"]
+        self.nodes_to_visit = []
+
+    @property
+    def nodes_numeric(self):
+        return [self.mapping[n] for n in self.nodes]
+
+    @property
+    def edges_numeric(self):
+        return [(self.mapping[e[0]], self.mapping[e[1]]) for e in self.edges]
 
     def shortest_path(self, source: str, target: str) -> list:
         G = nx.Graph()
@@ -70,6 +80,7 @@ class GraphModel:
         return [self.mapping[p] for p in path]
 
     def insert_node(self, node, node_symbol: str) -> None:
+        self.nodes_to_visit.append(node_symbol)
         nodes = [self.mapping[n] for n in self.nodes]
         nearest = nodes[0]
         best_dist = manhattan_distance(node, nearest)
@@ -87,15 +98,33 @@ class GraphModel:
         self.edges.append((nearest_symbol, node_symbol))
         self.mapping[node_symbol] = node
 
-    def create_distance_matrix(self, nodes_to_visit):
+    def reset(self):
+        graph_data = load_json(self.data_path)
+        self.nodes = graph_data["nodes_symbols"]
+        self.edges = graph_data["edges_symbols"]
+        self.mapping = graph_data["mapping"]
+        self.nodes_to_visit.clear()
+
+    def create_distance_matrix(self):
         matrix = []
-        nodes = [self.mapping[n] for n in nodes_to_visit]
+        nodes = [self.mapping[n] for n in self.nodes_to_visit]
         for n1 in nodes:
             row = []
             for n2 in nodes:
                 row.append(manhattan_distance(n1, n2))
             matrix.append(row)
         return matrix
+
+    def solve_tsp(self) -> list:
+        path, cost = tsp_solver(self.create_distance_matrix())
+        path = path[:-1]  # no need to go pack to the starting position
+        path_symbols = [self.nodes_to_visit[idx] for idx in path]
+        routes = [
+            self.shortest_path(source=p1, target=p2)
+            for p1, p2 in zip(path_symbols[:-1], path_symbols[1:])
+        ]
+        whole_route = [v for p in routes for v in p[1:]]
+        return whole_route
 
 
 if __name__ == "__main__":
@@ -106,12 +135,4 @@ if __name__ == "__main__":
     model.insert_node(node=(80, 500), node_symbol="P2")
     model.insert_node(node=(200, 550), node_symbol="P3")
     model.insert_node(node=(480, 540), node_symbol="P4")
-    print(model.shortest_path(source="Robot", target="P3"))
-    nodes_to_visit = ["Robot", "P0", "P1", "P2", "P3", "P4"]
-    matrix = model.create_distance_matrix(nodes_to_visit)
-    path, cost = tsp_solver(matrix)
-    path = path[:-1]  # no need to go pack to the starting position
-    path_symbols = [nodes_to_visit[idx] for idx in path]
-    routes = [model.shortest_path(source=p1, target=p2) for p1, p2 in zip(path_symbols[:-1], path_symbols[1:])]
-    whole_route = [v for p in routes for v in p[1:]]
-    print(whole_route)
+    print(model.solve_tsp())

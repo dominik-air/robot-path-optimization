@@ -37,29 +37,24 @@ if __name__ == "__main__":
 
     polygons = load_json("polygon.json")
     warehouse = Warehouse(polygons)
-    graph_data = load_json("visibility_graph.json")
 
-    nodes = graph_data["nodes"]
-    edges = graph_data["edges"]
+    robot = Robot(x=5 * SCALE, y=5 * SCALE, width=ROBOT_WIDTH, length=ROBOT_LENGTH)
+
+    model = GraphModel(data_path="visibility_graph.json")
+    model.insert_node(node=(robot.x, robot.y), node_symbol="Robot")
 
     visibility_graph = Graph(
-        nodes=nodes,
-        color=constants.BLUE_VERTEX,
-        edges=edges,
+        model=model,
+        node_color=constants.BLUE_VERTEX,
         edge_color=constants.RED_ROBOT,
         radius=10,
     )
 
-    robot = Robot(x=5 * SCALE, y=5 * SCALE, width=ROBOT_WIDTH, length=ROBOT_LENGTH)
-
     fps_counter = FPSCounter(x=int(MAP_WIDTH * 0.8), y=10)
 
     robot_controller = RobotController(robot, step_size)
-    user_nodes = Graph(
-        nodes=robot_controller.points, color=constants.GREEN_POINTER, radius=5
-    )
 
-    visible_objects: List[Viewable] = [robot, warehouse, user_nodes, fps_counter]
+    visible_objects: List[Viewable] = [warehouse, visibility_graph, robot, fps_counter]
     visibility_controller = VisibilityController(visible_objects)
 
     i = 0
@@ -76,30 +71,19 @@ if __name__ == "__main__":
                 # n - add new point that the robot should visit
                 # r - reset robot (also clears points)
                 if event.key == ord("f"):
-                    i = 0
-                    robot_controller.push_new_instructions()
+                    robot_controller.push_new_instructions(model.solve_tsp())
                 if event.key == ord("n"):
-                    robot_controller.add_point(pygame.mouse.get_pos())
-                if event.key == ord("s"):
-                    model = GraphModel(data_path="visibility_graph.json")
-                    model.insert_node(node=(robot.x, robot.y), node_symbol="Robot")
-                    model.insert_node(node=(50, 160), node_symbol="P0")
-                    model.insert_node(node=(350, 180), node_symbol="P1")
-                    model.insert_node(node=(80, 500), node_symbol="P2")
-                    model.insert_node(node=(200, 550), node_symbol="P3")
-                    model.insert_node(node=(480, 540), node_symbol="P4")
-                    nodes_to_visit = ["Robot", "P0", "P1", "P2", "P3", "P4"]
-                    matrix = model.create_distance_matrix(nodes_to_visit)
-                    path, cost = tsp_solver(matrix)
-                    path = path[:-1]  # no need to go pack to the starting position
-                    path_symbols = [nodes_to_visit[idx] for idx in path]
-                    routes = [model.shortest_path(source=p1, target=p2) for p1, p2 in
-                              zip(path_symbols[:-1], path_symbols[1:])]
-                    whole_route = [v for p in routes for v in p[1:]]
-                    for p in whole_route:
-                        robot_controller.add_point(p)
+                    user_node = pygame.mouse.get_pos()
+                    user_node_symbol = "P"
+                    if model.nodes_to_visit[-1] == "Robot":
+                        user_node_symbol += "0"
+                    else:
+                        user_node_symbol += str(int(model.nodes_to_visit[-1][-1]) + 1)
+                    model.nodes_to_visit.append(user_node_symbol)
+                    model.insert_node(node=user_node, node_symbol=user_node_symbol)
                 if event.key == ord("r"):
-                    robot_controller.clear_points()
+                    model.reset()
+                    model.insert_node(node=(robot.x, robot.y), node_symbol="Robot")
                 # Visibility Settings' keybinds
                 mods = pygame.key.get_mods()
                 if event.key == ord("q"):

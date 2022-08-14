@@ -16,18 +16,11 @@ class RobotController:
     def __init__(self, robot: Robot, step_size: int):
         self.robot = robot
         self.step_size = step_size
-        self.points = []
         self.moves_gen = moves_gen()
 
-    def add_point(self, p) -> None:
-        self.points.append(p)
-
-    def clear_points(self) -> None:
-        self.points.clear()
-
-    def push_new_instructions(self):
+    def push_new_instructions(self, new_points):
         moves = []
-        points = [(self.robot.x, self.robot.y)] + self.points
+        points = [(self.robot.x, self.robot.y)] + new_points
         for p1, p2 in zip(points[:-1], points[1:]):
             x_start, y_start = p1
             x_end, y_end = p2
