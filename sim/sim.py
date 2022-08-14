@@ -1,5 +1,5 @@
-import pygame.freetype
 import json
+import pygame.freetype
 import constants
 from typing import List
 from entities import (
@@ -11,7 +11,7 @@ from entities import (
     VisibilityController,
 )
 from control import RobotController
-from graphs import shortest_path
+from graphs import tsp_solver, GraphModel
 
 pygame.init()
 
@@ -81,8 +81,22 @@ if __name__ == "__main__":
                 if event.key == ord("n"):
                     robot_controller.add_point(pygame.mouse.get_pos())
                 if event.key == ord("s"):
-                    path = shortest_path(source='A', target='U')
-                    for p in path:
+                    model = GraphModel(data_path="visibility_graph.json")
+                    model.insert_node(node=(robot.x, robot.y), node_symbol="Robot")
+                    model.insert_node(node=(50, 160), node_symbol="P0")
+                    model.insert_node(node=(350, 180), node_symbol="P1")
+                    model.insert_node(node=(80, 500), node_symbol="P2")
+                    model.insert_node(node=(200, 550), node_symbol="P3")
+                    model.insert_node(node=(480, 540), node_symbol="P4")
+                    nodes_to_visit = ["Robot", "P0", "P1", "P2", "P3", "P4"]
+                    matrix = model.create_distance_matrix(nodes_to_visit)
+                    path, cost = tsp_solver(matrix)
+                    path = path[:-1]  # no need to go pack to the starting position
+                    path_symbols = [nodes_to_visit[idx] for idx in path]
+                    routes = [model.shortest_path(source=p1, target=p2) for p1, p2 in
+                              zip(path_symbols[:-1], path_symbols[1:])]
+                    whole_route = [v for p in routes for v in p[1:]]
+                    for p in whole_route:
                         robot_controller.add_point(p)
                 if event.key == ord("r"):
                     robot_controller.clear_points()
