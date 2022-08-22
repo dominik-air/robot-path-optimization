@@ -1,15 +1,30 @@
 import json
 import networkx as nx
+from typing import Dict
 from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
+from constants import Color
 
 
-def load_json(filename: str) -> dict:
+def make_tuples_out_of_child_elements(items: list) -> list:
+    new_list = []
+    for item in items:
+        if isinstance(item[0], list):
+            new_list.append(make_tuples_out_of_child_elements(item))
+        else:
+            new_list.append(tuple(item))
+    return new_list
+
+
+def load_graph_data_from_json(filename: str) -> dict:
     with open(filename) as f:
-        return json.load(f)
+        converted_data = {}
+        for key, list_of_lists in json.load(f).items():
+            converted_data[key] = make_tuples_out_of_child_elements(list_of_lists)
+    return converted_data
 
 
-def manhattan_distance(n1, n2) -> int:
+def manhattan_distance(n1, n2, edge_attributes: dict = None) -> int:
     return abs(n1[0] - n2[0]) + abs(n1[1] - n2[1])
 
 
@@ -54,85 +69,82 @@ def tsp_solver(matrix):
     return extract_path(manager, routing, solution)
 
 
+SOURCE_COLOR_MAPPING: Dict[str, Color] = {
+    "decomposition_node": (219, 36, 20),
+    "user_node": (171, 136, 12),
+    "decomposition_edge": (38, 188, 222),
+    "solution_edge": (235, 195, 52),
+    "solution_start_node": (30, 140, 18),
+    "solution_end_node": (143, 14, 194),
+}
+
+
 class GraphModel:
     def __init__(self, data_path: str):
-        self.data_path = data_path
-        graph_data = load_json(data_path)
-        self.nodes = graph_data["nodes_symbols"]
-        self.edges = graph_data["edges_symbols"]
-        self.mapping = graph_data["mapping"]
+        self.graph = nx.Graph()
+        graph_data = load_graph_data_from_json(data_path)
+        self.graph.add_nodes_from(
+            graph_data["nodes"], color=SOURCE_COLOR_MAPPING["decomposition_node"]
+        )
+        self.graph.add_edges_from(
+            graph_data["edges"], color=SOURCE_COLOR_MAPPING["decomposition_edge"]
+        )
         self.nodes_to_visit = []
 
-    @property
-    def nodes_numeric(self):
-        return [self.mapping[n] for n in self.nodes]
-
-    @property
-    def edges_numeric(self):
-        return [(self.mapping[e[0]], self.mapping[e[1]]) for e in self.edges]
-
-    def shortest_path(self, source: str, target: str) -> list:
-        G = nx.Graph()
-        G.add_nodes_from(self.nodes)
-        G.add_edges_from(self.edges)
-
-        path = nx.shortest_path(G, source, target)
-        return [self.mapping[p] for p in path]
-
-    def insert_node(self, node, node_symbol: str) -> None:
-        self.nodes_to_visit.append(node_symbol)
-        nodes = [self.mapping[n] for n in self.nodes]
+    def insert_node(self, node) -> None:
+        self.nodes_to_visit.append(node)
+        nodes = list(self.graph.nodes().keys())
         nearest = nodes[0]
         best_dist = manhattan_distance(node, nearest)
         for neighbour in nodes[1:]:
             if best_dist > manhattan_distance(node, neighbour):
                 nearest = neighbour
                 best_dist = manhattan_distance(node, neighbour)
-        nearest_symbol = None
-        for k, v in self.mapping.items():
-            if v == nearest:
-                nearest_symbol = k
-                break
-        self.nodes.append(node_symbol)
-        self.edges.append((node_symbol, nearest_symbol))
-        self.edges.append((nearest_symbol, node_symbol))
-        self.mapping[node_symbol] = node
+        self.graph.add_node(node, color=SOURCE_COLOR_MAPPING["user_node"])
+        self.graph.add_edge(node, nearest, color=SOURCE_COLOR_MAPPING["solution_edge"])
 
     def reset(self):
-        graph_data = load_json(self.data_path)
-        self.nodes = graph_data["nodes_symbols"]
-        self.edges = graph_data["edges_symbols"]
-        self.mapping = graph_data["mapping"]
+        nodes_to_remove = []
+        for node, data in self.graph.nodes(data=True):
+            if data["color"] == SOURCE_COLOR_MAPPING["user_node"]:
+                nodes_to_remove.append(node)
+        self.graph.remove_nodes_from(nodes_to_remove)
         self.nodes_to_visit.clear()
+        nx.set_node_attributes(self.graph, values=SOURCE_COLOR_MAPPING["decomposition_node"], name='color')
+        nx.set_edge_attributes(self.graph, values=SOURCE_COLOR_MAPPING["decomposition_edge"], name='color')
 
     def create_distance_matrix(self):
         matrix = []
-        nodes = [self.mapping[n] for n in self.nodes_to_visit]
+        nodes = self.nodes_to_visit
         for n1 in nodes:
             row = []
             for n2 in nodes:
-                row.append(manhattan_distance(n1, n2))
+                length = nx.shortest_path_length(self.graph, source=n1, target=n2, weight=manhattan_distance)
+                row.append(length)
             matrix.append(row)
         return matrix
 
     def solve_tsp(self) -> list:
         path, cost = tsp_solver(self.create_distance_matrix())
-        path = path[:-1]  # no need to go pack to the starting position
-        path_symbols = [self.nodes_to_visit[idx] for idx in path]
-        routes = [
-            self.shortest_path(source=p1, target=p2)
-            for p1, p2 in zip(path_symbols[:-1], path_symbols[1:])
-        ]
-        whole_route = [v for p in routes for v in p[1:]]
-        return whole_route
+        nodes_on_path = [self.nodes_to_visit[idx] for idx in path]
+        optimal_route = []
+        for n1, n2 in zip(nodes_on_path[:-1], nodes_on_path[1:]):
+            part = nx.shortest_path(self.graph, source=n1, target=n2, weight=manhattan_distance)[1:]
+            optimal_route.extend(part)
+        # color map significant nodes and edges in the optimal route
+        for n1, n2 in zip(optimal_route[:-1], optimal_route[1:]):
+            self.graph[n1][n2]['color'] = SOURCE_COLOR_MAPPING['solution_edge']
+        self.graph.nodes[optimal_route[0]]['color'] = SOURCE_COLOR_MAPPING['solution_start_node']
+        self.graph.nodes[optimal_route[-1]]['color'] = SOURCE_COLOR_MAPPING['solution_end_node']
+        return optimal_route
 
 
 if __name__ == "__main__":
     model = GraphModel(data_path="visibility_graph.json")
-    model.insert_node(node=(50, 30), node_symbol="Robot")
-    model.insert_node(node=(50, 160), node_symbol="P0")
-    model.insert_node(node=(350, 180), node_symbol="P1")
-    model.insert_node(node=(80, 500), node_symbol="P2")
-    model.insert_node(node=(200, 550), node_symbol="P3")
-    model.insert_node(node=(480, 540), node_symbol="P4")
+    model.insert_node(node=(50, 30))
+    model.insert_node(node=(50, 160))
+    model.insert_node(node=(350, 180))
+    model.insert_node(node=(80, 500))
+    model.insert_node(node=(200, 550))
+    model.insert_node(node=(480, 540))
     print(model.solve_tsp())

@@ -1,6 +1,3 @@
-import json
-
-
 def create_coordinates_matrix(scale=2):
     xs = [15 * scale]
     for i in range(1, 4):
@@ -19,7 +16,7 @@ def create_coordinates_matrix(scale=2):
 
     coordinates = [(x, y) for y in ys for x in xs]
 
-    return [coordinates[4 * i : 4 * i + 4] for i in range(5)]
+    return [coordinates[4 * i: 4 * i + 4] for i in range(5)]
 
 
 def create_adjacency_list(matrix):
@@ -43,21 +40,9 @@ def create_adjacency_list(matrix):
 
 
 if __name__ == "__main__":
-
-    warehouse_matrix = [
-        ["A", "B", "C", "D"],
-        ["E", "F", "G", "H"],
-        ["I", "J", "K", "L"],
-        ["M", "N", "O", "P"],
-        ["R", "S", "T", "U"],
-    ]
+    import json
 
     coordinates = create_coordinates_matrix()
-
-    mapping = {}
-    for i in range(5):
-        for j in range(4):
-            mapping[warehouse_matrix[i][j]] = coordinates[i][j]
 
     adj_list = create_adjacency_list(coordinates)
     nodes = list(adj_list.keys())
@@ -68,20 +53,9 @@ if __name__ == "__main__":
             edges.append((k, v))
     edges = list(set(edges))
 
-    adj_list_symbols = create_adjacency_list(warehouse_matrix)
-    nodes_symbols = list(adj_list_symbols.keys())
-
-    edges_symbols = []
-    for k in adj_list_symbols:
-        for v in adj_list_symbols[k]:
-            edges_symbols.append((k, v))
-
     data = {
         "nodes": nodes,
         "edges": edges,
-        "nodes_symbols": nodes_symbols,
-        "edges_symbols": edges_symbols,
-        "mapping": mapping,
     }
 
     with open("visibility_graph.json", "w") as f:

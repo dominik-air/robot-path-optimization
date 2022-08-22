@@ -11,7 +11,7 @@ from entities import (
     VisibilityController,
 )
 from control import RobotController
-from graphs import tsp_solver, GraphModel
+from graphs import GraphModel
 
 pygame.init()
 
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     robot = Robot(x=5 * SCALE, y=5 * SCALE, width=ROBOT_WIDTH, length=ROBOT_LENGTH)
 
     model = GraphModel(data_path="visibility_graph.json")
-    model.insert_node(node=(robot.x, robot.y), node_symbol="Robot")
+    model.insert_node(node=(robot.x, robot.y))
 
     visibility_graph = Graph(
         model=model,
@@ -74,16 +74,10 @@ if __name__ == "__main__":
                     robot_controller.push_new_instructions(model.solve_tsp())
                 if event.key == ord("n"):
                     user_node = pygame.mouse.get_pos()
-                    user_node_symbol = "P"
-                    if model.nodes_to_visit[-1] == "Robot":
-                        user_node_symbol += "0"
-                    else:
-                        user_node_symbol += str(int(model.nodes_to_visit[-1][-1]) + 1)
-                    model.nodes_to_visit.append(user_node_symbol)
-                    model.insert_node(node=user_node, node_symbol=user_node_symbol)
+                    model.insert_node(node=user_node)
                 if event.key == ord("r"):
                     model.reset()
-                    model.insert_node(node=(robot.x, robot.y), node_symbol="Robot")
+                    model.insert_node(node=(robot.x, robot.y))
                 # Visibility Settings' keybinds
                 mods = pygame.key.get_mods()
                 if event.key == ord("q"):

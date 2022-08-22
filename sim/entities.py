@@ -29,16 +29,10 @@ class Graph:
         self.radius = radius
 
     def draw(self, surface: pygame.Surface) -> None:
-        edges = self.model.edges_numeric
-        if not edges:
-            edges = [
-                (n1, n2) for n1, n2 in zip(self.model.nodes_numeric[:-1], self.model.nodes_numeric[1:])
-            ]
-        for edge in edges:
-            start, end = edge
-            pygame.draw.line(surface, self.edge_color, start, end, 4)
-        for node in self.model.nodes_numeric:
-            pygame.draw.circle(surface, self.color, center=node, radius=self.radius)
+        for start, end, data in self.model.graph.edges(data=True):
+            pygame.draw.line(surface, data['color'], start, end, width=4)
+        for node, data in self.model.graph.nodes(data=True):
+            pygame.draw.circle(surface, data['color'], center=node, radius=self.radius)
 
 
 class FPSCounter:
