@@ -20,12 +20,8 @@ class Warehouse:
 
 
 class Graph:
-    def __init__(self, model: GraphModel, node_color, edge_color=None, radius: int = 3):
+    def __init__(self, model: GraphModel, radius: int = 3):
         self.model = model
-        self.color = node_color
-        self.edge_color = edge_color
-        if self.edge_color is None:
-            self.edge_color = constants.BLUE_VERTEX
         self.radius = radius
 
     def draw(self, surface: pygame.Surface) -> None:

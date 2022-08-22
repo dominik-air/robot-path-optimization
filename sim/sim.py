@@ -45,9 +45,7 @@ if __name__ == "__main__":
 
     visibility_graph = Graph(
         model=model,
-        node_color=constants.BLUE_VERTEX,
-        edge_color=constants.RED_ROBOT,
-        radius=10,
+        radius=10
     )
 
     clock = pygame.time.Clock()
@@ -58,8 +56,7 @@ if __name__ == "__main__":
     visible_objects: List[Viewable] = [warehouse, visibility_graph, robot, fps_counter]
     visibility_controller = VisibilityController(visible_objects)
 
-    running = True
-    while running:
+    while running := True:
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
