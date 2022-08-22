@@ -36,16 +36,15 @@ class Graph:
 
 
 class FPSCounter:
-    def __init__(self, x: int, y: int):
+    def __init__(self, x: int, y: int, clock: pygame.time.Clock):
         self.x = x
         self.y = y
-        self.clock = pygame.time.Clock()
+        self.clock = clock
         self.font = pygame.freetype.SysFont("Arial", 20)
 
     @property
-    def fps(self) -> float:
-        self.clock.tick()
-        return self.clock.get_fps()
+    def fps(self) -> int:
+        return int(self.clock.get_fps())
 
     def draw(self, surface: pygame.Surface) -> None:
         self.font.render_to(

@@ -50,14 +50,14 @@ if __name__ == "__main__":
         radius=10,
     )
 
-    fps_counter = FPSCounter(x=int(MAP_WIDTH * 0.8), y=10)
+    clock = pygame.time.Clock()
+    fps_counter = FPSCounter(x=int(MAP_WIDTH * 0.8), y=10, clock=clock)
 
     robot_controller = RobotController(robot, step_size)
 
     visible_objects: List[Viewable] = [warehouse, visibility_graph, robot, fps_counter]
     visibility_controller = VisibilityController(visible_objects)
 
-    i = 0
     running = True
     while running:
 
@@ -101,10 +101,8 @@ if __name__ == "__main__":
                     else:
                         visibility_controller.hide_object(robot)
 
-        if fps_counter.fps and i % (fps_counter.fps / 1000) == 0:
-            robot_controller.move_robot()
-        i += 1
-
+        clock.tick(60)
+        robot_controller.move_robot()
         screen.fill(constants.WHITE)
 
         for obj in visible_objects:

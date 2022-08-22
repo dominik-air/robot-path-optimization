@@ -69,10 +69,10 @@ def tsp_solver(matrix):
     return extract_path(manager, routing, solution)
 
 
-SOURCE_COLOR_MAPPING: Dict[str, Color] = {
-    "decomposition_node": (219, 36, 20),
+COLOR_MAP: Dict[str, Color] = {
+    "base_node": (219, 36, 20),
     "user_node": (171, 136, 12),
-    "decomposition_edge": (38, 188, 222),
+    "base_edge": (38, 188, 222),
     "solution_edge": (235, 195, 52),
     "solution_start_node": (30, 140, 18),
     "solution_end_node": (143, 14, 194),
@@ -84,10 +84,10 @@ class GraphModel:
         self.graph = nx.Graph()
         graph_data = load_graph_data_from_json(data_path)
         self.graph.add_nodes_from(
-            graph_data["nodes"], color=SOURCE_COLOR_MAPPING["decomposition_node"]
+            graph_data["nodes"], color=COLOR_MAP["base_node"]
         )
         self.graph.add_edges_from(
-            graph_data["edges"], color=SOURCE_COLOR_MAPPING["decomposition_edge"]
+            graph_data["edges"], color=COLOR_MAP["base_edge"]
         )
         self.nodes_to_visit = []
 
@@ -100,18 +100,18 @@ class GraphModel:
             if best_dist > manhattan_distance(node, neighbour):
                 nearest = neighbour
                 best_dist = manhattan_distance(node, neighbour)
-        self.graph.add_node(node, color=SOURCE_COLOR_MAPPING["user_node"])
-        self.graph.add_edge(node, nearest, color=SOURCE_COLOR_MAPPING["solution_edge"])
+        self.graph.add_node(node, color=COLOR_MAP["user_node"])
+        self.graph.add_edge(node, nearest, color=COLOR_MAP["solution_edge"])
 
     def reset(self):
         nodes_to_remove = []
         for node, data in self.graph.nodes(data=True):
-            if data["color"] == SOURCE_COLOR_MAPPING["user_node"]:
+            if data["color"] == COLOR_MAP["user_node"]:
                 nodes_to_remove.append(node)
         self.graph.remove_nodes_from(nodes_to_remove)
         self.nodes_to_visit.clear()
-        nx.set_node_attributes(self.graph, values=SOURCE_COLOR_MAPPING["decomposition_node"], name='color')
-        nx.set_edge_attributes(self.graph, values=SOURCE_COLOR_MAPPING["decomposition_edge"], name='color')
+        nx.set_node_attributes(self.graph, values=COLOR_MAP["base_node"], name='color')
+        nx.set_edge_attributes(self.graph, values=COLOR_MAP["base_edge"], name='color')
 
     def create_distance_matrix(self):
         matrix = []
@@ -133,9 +133,9 @@ class GraphModel:
             optimal_route.extend(part)
         # color map significant nodes and edges in the optimal route
         for n1, n2 in zip(optimal_route[:-1], optimal_route[1:]):
-            self.graph[n1][n2]['color'] = SOURCE_COLOR_MAPPING['solution_edge']
-        self.graph.nodes[optimal_route[0]]['color'] = SOURCE_COLOR_MAPPING['solution_start_node']
-        self.graph.nodes[optimal_route[-1]]['color'] = SOURCE_COLOR_MAPPING['solution_end_node']
+            self.graph[n1][n2]['color'] = COLOR_MAP['solution_edge']
+        self.graph.nodes[optimal_route[0]]['color'] = COLOR_MAP['solution_start_node']
+        self.graph.nodes[optimal_route[-1]]['color'] = COLOR_MAP['solution_end_node']
         return optimal_route
 
 
