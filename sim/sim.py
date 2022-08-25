@@ -22,7 +22,6 @@ def load_json(filename: str) -> dict:
 
 
 if __name__ == "__main__":
-    # FIXME: the old settings file is out of date - needs some love
     SCALE = 2
     SETTINGS = load_json("dimensions.json")
 
@@ -33,7 +32,7 @@ if __name__ == "__main__":
 
     screen = pygame.display.set_mode([MAP_WIDTH, MAP_LENGTH])
 
-    step_size = 1 * SCALE
+    STEP_SIZE = 1 * SCALE
 
     polygons = load_json("polygon.json")
     warehouse = Warehouse(polygons)
@@ -51,7 +50,7 @@ if __name__ == "__main__":
     clock = pygame.time.Clock()
     fps_counter = FPSCounter(x=int(MAP_WIDTH * 0.8), y=10, clock=clock)
 
-    robot_controller = RobotController(robot, step_size)
+    robot_controller = RobotController(robot, STEP_SIZE)
 
     visible_objects: List[Viewable] = [warehouse, visibility_graph, robot, fps_counter]
     visibility_controller = VisibilityController(visible_objects)
@@ -62,12 +61,10 @@ if __name__ == "__main__":
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.KEYDOWN:
-                # FIXME: the ruleset (the sim's structure overall) isn't defined
-                #  in the most verbose way it could have been, but it works for now
-                # f - run robot
+                # f - run robot controller
                 # n - add new point that the robot should visit
-                # r - reset robot (also clears points)
-                if event.key == ord("f"):
+                # r - clears points that the robot should visit
+                if event.key == ord("f") and not robot_controller.instructions:
                     robot_controller.push_new_instructions(model.solve_tsp())
                 if event.key == ord("n"):
                     user_node = pygame.mouse.get_pos()
@@ -101,9 +98,7 @@ if __name__ == "__main__":
         clock.tick(60)
         robot_controller.move_robot()
         screen.fill(constants.WHITE)
-
-        for obj in visible_objects:
-            obj.draw(screen)
+        visibility_controller.draw(screen)
         pygame.display.flip()
 
     pygame.quit()

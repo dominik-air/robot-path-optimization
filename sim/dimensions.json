@@ -6,20 +6,6 @@
   "warehouse":
   {
     "length": 340,
-    "width": 270,
-    "layout": {
-      "rows": 2,
-      "columns": 3,
-      "x_offset": 30,
-      "y_offset": 30,
-      "x_spacing": 80,
-      "y_spacing": 60
-    }
-  },
-  "shelf":
-  {
-    "length": 116,
-    "width": 16
+    "width": 270
   }
-
 }

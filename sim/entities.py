@@ -26,9 +26,9 @@ class Graph:
 
     def draw(self, surface: pygame.Surface) -> None:
         for start, end, data in self.model.graph.edges(data=True):
-            pygame.draw.line(surface, data['color'], start, end, width=4)
+            pygame.draw.line(surface, data["color"], start, end, width=4)
         for node, data in self.model.graph.nodes(data=True):
-            pygame.draw.circle(surface, data['color'], center=node, radius=self.radius)
+            pygame.draw.circle(surface, data["color"], center=node, radius=self.radius)
 
 
 class FPSCounter:
@@ -62,6 +62,10 @@ class VisibilityController:
     def hide_object(self, x: Viewable) -> None:
         if x in self.visible_objects:
             self.visible_objects.remove(x)
+
+    def draw(self, screen: pygame.Surface):
+        for obj in self.visible_objects:
+            obj.draw(screen)
 
 
 class Robot:
