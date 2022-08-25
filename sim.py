@@ -1,8 +1,10 @@
 import json
-import pygame.freetype
-import constants
 from typing import List
-from entities import (
+
+import pygame.freetype
+
+import sim.constants as constants
+from sim.entities import (
     Graph,
     Warehouse,
     Viewable,
@@ -10,8 +12,8 @@ from entities import (
     FPSCounter,
     VisibilityController,
 )
-from control import RobotController
-from graphs import GraphModel
+from sim.control import RobotController
+from sim.graphs import GraphModel
 
 pygame.init()
 
@@ -23,7 +25,7 @@ def load_json(filename: str) -> dict:
 
 if __name__ == "__main__":
     SCALE = 2
-    SETTINGS = load_json("dimensions.json")
+    SETTINGS = load_json("data/dimensions.json")
 
     MAP_LENGTH = SETTINGS["warehouse"]["length"] * SCALE
     MAP_WIDTH = SETTINGS["warehouse"]["width"] * SCALE
@@ -34,12 +36,12 @@ if __name__ == "__main__":
 
     STEP_SIZE = 1 * SCALE
 
-    polygons = load_json("polygon.json")
+    polygons = load_json("data/polygon.json")
     warehouse = Warehouse(polygons)
 
     robot = Robot(x=5 * SCALE, y=5 * SCALE, width=ROBOT_WIDTH, length=ROBOT_LENGTH)
 
-    model = GraphModel(data_path="visibility_graph.json")
+    model = GraphModel(data_path="data/visibility_graph.json")
     model.insert_node(node=(robot.x, robot.y))
 
     visibility_graph = Graph(

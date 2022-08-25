@@ -7,3 +7,4 @@ opencv-python
 matplotlib
 fastapi
 uvicorn[standard]
+pytest

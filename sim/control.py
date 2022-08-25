@@ -1,5 +1,5 @@
-from entities import Robot
-from geometry import create_robot_moves
+from sim.entities import Robot
+from sim.geometry import create_robot_moves
 
 
 class RobotController:

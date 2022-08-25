@@ -58,5 +58,5 @@ if __name__ == "__main__":
         "edges": edges,
     }
 
-    with open("visibility_graph.json", "w") as f:
+    with open("../data/visibility_graph.json", "w") as f:
         json.dump(data, f, indent=4)

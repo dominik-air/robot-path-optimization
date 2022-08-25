@@ -1,7 +1,7 @@
 import pygame
-import constants
+import sim.constants
 from typing import Protocol, List
-from graphs import GraphModel
+from sim.graphs import GraphModel
 
 
 class Viewable(Protocol):
@@ -12,7 +12,7 @@ class Viewable(Protocol):
 class Warehouse:
     def __init__(self, polygons):
         self.polygons = polygons
-        self.color = constants.BLACK
+        self.color = sim.constants.BLACK
 
     def draw(self, surface: pygame.Surface) -> None:
         for polygon in self.polygons:
@@ -47,7 +47,7 @@ class FPSCounter:
             surf=surface,
             dest=(self.x, self.y),
             text=f"FPS: {self.fps}",
-            bgcolor=constants.GREEN_POINTER,
+            bgcolor=sim.constants.GREEN_POINTER,
         )
 
 
@@ -71,7 +71,7 @@ class VisibilityController:
 class Robot:
     def __init__(self, x: int, y: int, width: int, length: int):
         self.rect = pygame.Rect(x, y, width, length)
-        self.color = constants.RED_ROBOT
+        self.color = sim.constants.RED_ROBOT
 
     @property
     def x(self) -> int:
