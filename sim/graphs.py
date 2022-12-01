@@ -1,7 +1,7 @@
 import json
 from enum import Enum
 import networkx as nx
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple
 from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
 from sim.constants import Color
@@ -107,7 +107,7 @@ class GraphModel:
         self.graph.add_edges_from(graph_data["edges"], color=COLOR_MAP[Origin.BASE_EDGE])
 
     def insert_node(self, node: Node) -> None:
-        nodes = list(self.graph.nodes().keys())
+        nodes = [n for n, data in self.graph.nodes(data=True) if data["color"] != COLOR_MAP[Origin.USER_NODE]]
         nearest = nodes[0]
         best_dist = manhattan_distance(node, nearest)
         for neighbour in nodes[1:]:
