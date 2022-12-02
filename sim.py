@@ -1,5 +1,7 @@
 import json
+import networkx as nx
 from typing import List
+from functools import partial
 
 import pygame.freetype
 
@@ -13,10 +15,9 @@ from sim.entities import (
     VisibilityController,
 )
 from sim.control import RobotController
-from sim.graphs import GraphModel
+from sim.graphs import GraphModel, manhattan_distance
 
 pygame.init()
-
 
 def load_json(filename: str) -> dict:
     with open(filename) as f:
@@ -41,7 +42,12 @@ if __name__ == "__main__":
 
     robot = Robot(x=5 * SCALE, y=5 * SCALE, width=ROBOT_WIDTH, length=ROBOT_LENGTH)
 
-    model = GraphModel(data_path="data/visibility_graph.json")
+    a_star_shortest_path = partial(nx.astar_path, heuristic=manhattan_distance) 
+    a_star_shortest_path_length = partial(nx.astar_path_length, heuristic=manhattan_distance) 
+
+    model = GraphModel(data_path="data/visibility_graph.json",
+                       sp_alg=a_star_shortest_path,
+                       sp_length_alg=a_star_shortest_path_length)
     model.insert_node(node=(robot.x, robot.y))
 
     visibility_graph = Graph(
