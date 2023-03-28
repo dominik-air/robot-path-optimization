@@ -1,7 +1,7 @@
 import pygame
 import sim.constants
+from sim.graph_model import GraphModel
 from typing import Protocol, List
-from sim.graphs import GraphModel
 
 
 class Viewable(Protocol):
@@ -20,7 +20,7 @@ class Warehouse:
 
 
 class Graph:
-    def __init__(self, model: GraphModel, radius: int = 3):
+    def __init__(self, model: GraphModel, radius: int):
         self.model = model
         self.radius = radius
 
@@ -81,7 +81,7 @@ class Robot:
     def y(self) -> int:
         return self.rect.y
 
-    def move(self, x: int = 0, y: int = 0) -> None:
+    def move(self, x: int, y: int) -> None:
         self.rect.move_ip(x, y)
 
     def draw(self, screen: pygame.Surface) -> None:

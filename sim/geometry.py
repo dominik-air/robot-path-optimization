@@ -7,7 +7,7 @@ def split_segment(segment: Segment2D, step_size: int) -> list[Point2D]:
     n = math.ceil(segment.length / step_size)
     move_vector = segment.direction / n
     movement = [segment.p1 + move_vector]
-    for i in range(n - 2):
+    for _ in range(n - 2):
         next_move = movement[-1] + move_vector
         movement.append(next_move)
     movement.append(segment.p2)
@@ -30,13 +30,3 @@ def create_robot_moves(x_start: int, y_start: int, x_end: int, y_end: int, step_
     end = Point2D(x_end, y_end)
     path = Segment2D(start, end)
     return create_robot_instructions(points=split_segment(path, step_size), robot_starting_point=start)
-
-
-if __name__ == '__main__':
-    start = Point2D(20, 30)
-    end = Point2D(30, 40)
-    path = Segment2D(start, end)
-    ps = split_segment(path, 5)
-    print(ps)
-    print(create_robot_instructions(ps, start))
-    

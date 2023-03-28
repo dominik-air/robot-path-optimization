@@ -1,6 +1,8 @@
 from typing import Tuple, Dict
 from enum import Enum
+
 Color = Tuple[int, int, int]
+
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 BLUE_VERTEX = (10, 10, 255)

@@ -3,8 +3,11 @@ ortools
 numpy
 sympy
 pygame
-opencv-python
 matplotlib
-fastapi
-uvicorn[standard]
 pytest
+pyvisgraph
+tqdm
+lkh
+pandas
+tsplib95
+jinja2

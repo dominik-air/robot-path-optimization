@@ -2,3 +2,14 @@
 *.pyc
 .vscode
 /ven*
+.pytest_cache
+/custom_tsplibs
+/ALL_tsp
+/GA-for-TSP
+/gen*
+/LKH-3.0.7
+/concorde
+.DS_Store
+/tsp_instances
+*.zip
+__pycache__

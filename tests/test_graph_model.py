@@ -1,26 +1,5 @@
 import pytest
-from sim.graphs import make_tuples_out_of_child_elements, manhattan_distance, GraphModel, Origin, COLOR_MAP
-
-make_tuples_out_of_child_elements_test_sets = [
-    ([[[1, 2], [3, 4]], [[5, 6], [8, 9]]], [[(1, 2), (3, 4)], [(5, 6), (8, 9)]]),
-    ([[1, 2], [3, 4]], [(1, 2), (3, 4)]),
-    ([1, 2], [1, 2]),
-]
-
-
-@pytest.mark.parametrize("input_list, expected_list", make_tuples_out_of_child_elements_test_sets)
-def test_make_tuples_out_of_child_elements(input_list, expected_list):
-    test_list = make_tuples_out_of_child_elements(input_list)
-    assert test_list == expected_list
-
-
-manhattan_distance_test_sets = [[(20, 20), (30, 40), 30], [(-20, 20), (30, -40), 110], [(-20, -20), (-30, -40), 30]]
-
-
-@pytest.mark.parametrize("n1, n2, expected_distance", manhattan_distance_test_sets)
-def test_manhattan_distance(n1, n2, expected_distance):
-    actual_distance = manhattan_distance(n1, n2)
-    assert actual_distance == expected_distance
+from sim.graph_model import GraphModel, Origin, COLOR_MAP
 
 
 test_model = GraphModel(data_path="tests/data/graph.json")
